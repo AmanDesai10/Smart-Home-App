@@ -3,6 +3,9 @@ import 'package:form_field_validator/form_field_validator.dart';
 import 'dart:math' as math;
 import 'package:smart_home_app/config/palette.dart';
 import 'package:smart_home_app/config/sizeconfig.dart';
+import 'package:http/http.dart' as http;
+import 'package:smart_home_app/services/auth.dart';
+import 'package:smart_home_app/widgets/textfields.dart';
 
 class NewSignUpScreen extends StatefulWidget {
   const NewSignUpScreen({Key? key}) : super(key: key);
@@ -18,12 +21,18 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
   late Animation<double> _zoominout;
 
   final _formkey = GlobalKey<FormState>();
-  String? email, password, fullName;
-  bool _isObscure = true;
+  String? email, password, firstName, lastName;
+  bool _isObscure = true, visible = true;
 
-  var _password = TextEditingController();
+  final TextEditingController controllerFirstName = TextEditingController();
+  final TextEditingController controllerLastName = TextEditingController();
+  final TextEditingController controllerEmail = TextEditingController();
+  final TextEditingController controllerPassword = TextEditingController();
+  final TextEditingController controllerConfirmPassword =
+      TextEditingController();
+
   bool isValidated = true;
-  bool ispasswordtapped = false, isconfirmpassTapped = false;
+  // bool ispasswordtapped = false, isconfirmpassTapped = false;
 
   //Validators
   final nameValidator = MultiValidator([
@@ -46,15 +55,17 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
   void initState() {
     super.initState();
 
-    _controller =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 2000))
-          ..forward();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 2000),
+      // reverseDuration: Duration(seconds: 2),
+    )..forward();
 
     _controller.addStatusListener((status) {
       if (disposed == true) return;
 
       if (status == AnimationStatus.completed) {
-        Future.delayed(Duration(milliseconds: 500), () {
+        Future.delayed(Duration(milliseconds: 0), () {
           _controller.reverse();
         });
       } else if (disposed == true)
@@ -94,10 +105,10 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
   @override
   void dispose() {
     disposed = true;
-
     _controller.dispose();
     _animationController.dispose();
     _zoominoutController.dispose();
+
     super.dispose();
   }
 
@@ -110,9 +121,6 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
         // alignment: Alignment.center,
         children: [
           Positioned(
-            // top: 0,
-            // left: 0,
-            // right: 0,
             child: Container(
               height: double.infinity,
               width: double.infinity,
@@ -204,7 +212,6 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
             left: MediaQuery.of(context).size.width - 85,
             child: ScaleTransition(
               scale: _zoominout,
-
               child: Image.asset(
                 "images/car_garage.png",
                 // width: 50,
@@ -213,11 +220,6 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
                 height: SizeConfig.safeBlockVertical * 8,
                 color: Colors.blueGrey.shade900.withOpacity(0.8),
               ),
-              // child: Icon(
-              //   Icons.circle_outlined,
-              //   size: 35,
-              //   color: Colors.black.withOpacity(0.7),
-              // ),
             ),
           ),
 
@@ -243,7 +245,7 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
               child: Container(
                 // color: Colors.white,
                 // height: 300,
-                height: SizeConfig.safeBlockVertical * 44.1,
+                height: SizeConfig.safeBlockVertical * 52,
                 width: MediaQuery.of(context).size.width - 50,
                 margin: EdgeInsets.only(left: 25, right: 25),
                 child: Form(
@@ -260,186 +262,51 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
                             Padding(
                                 padding: EdgeInsets.only(
                                     top: 25, left: 15, right: 15),
-                                child: TextFormField(
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18),
-                                  cursorColor: Colors.white,
-                                  validator: nameValidator,
-                                  autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
-                                  decoration: InputDecoration(
-                                    fillColor: Colors.white.withOpacity(0.2),
-                                    filled: true,
-                                    prefixIcon: Icon(
-                                      Icons.person_outlined,
-                                      color: Colors.white,
-                                    ),
-                                    // labelText: "Full Name",
-                                    hintText: "Your Full Name",
-                                    hintStyle: TextStyle(
-                                        fontSize: 17,
-                                        color: Colors.white.withOpacity(0.5)),
-                                    errorStyle: TextStyle(color: Colors.yellow),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(25.0),
-                                      borderSide:
-                                          BorderSide(color: Colors.white),
-                                    ),
-
-                                    enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.white.withOpacity(0.0)),
-                                        borderRadius:
-                                            BorderRadius.circular(25.0)),
-                                    errorBorder: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(25.0),
-                                        borderSide:
-                                            BorderSide(color: Colors.yellow)),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(25.0),
-                                        borderSide:
-                                            BorderSide(color: Colors.yellow)),
-                                  ),
-                                  onChanged: (String userfullname) {
-                                    setState(() {
-                                      fullName = userfullname;
-                                    });
-                                  },
-                                )),
-
+                                child: Textfields(
+                                    validate: nameValidator,
+                                    controller: controllerFirstName,
+                                    hintText: "First Name",
+                                    icon: Icons.person_outline)),
+                            Padding(
+                                padding: EdgeInsets.only(
+                                    top: 10, left: 15, right: 15),
+                                child: Textfields(
+                                    validate: nameValidator,
+                                    controller: controllerLastName,
+                                    hintText: "Last Name",
+                                    icon: Icons.person_outline)),
                             Padding(
                                 padding: EdgeInsets.only(
                                     top: 10, bottom: 10, left: 15, right: 15),
-                                child: TextFormField(
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18),
-                                  cursorColor: Colors.white,
-                                  validator: emailValidator,
-                                  autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
-                                  decoration: InputDecoration(
-                                    fillColor: Colors.white.withOpacity(0.2),
-                                    filled: true,
-                                    prefixIcon: Icon(
-                                      Icons.email_outlined,
-                                      color: Colors.white,
-                                    ),
-                                    // labelText: "First Name",
+                                child: Textfields(
+                                    validate: emailValidator,
+                                    controller: controllerEmail,
                                     hintText: "Enter Email",
-                                    hintStyle: TextStyle(
-                                        fontSize: 17,
-                                        color: Colors.white.withOpacity(0.5)),
-                                    errorStyle: TextStyle(color: Colors.yellow),
-
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(25.0),
-                                      borderSide:
-                                          BorderSide(color: Colors.white),
-                                    ),
-
-                                    enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.white.withOpacity(0.0)),
-                                        borderRadius:
-                                            BorderRadius.circular(25.0)),
-                                    errorBorder: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(25.0),
-                                        borderSide:
-                                            BorderSide(color: Colors.yellow)),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(25.0),
-                                        borderSide:
-                                            BorderSide(color: Colors.yellow)),
-                                  ),
-                                  onChanged: (String useremail) {
-                                    setState(() {
-                                      email = useremail;
-                                    });
-                                  },
-                                )),
-
-                            //Password Field
+                                    icon: Icons.mail_outline)),
                             Padding(
-                              padding: EdgeInsets.only(
-                                  bottom: 10.0, left: 15.0, right: 15.0),
-                              child: Focus(
-                                child: TextFormField(
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18),
-                                  controller: _password,
-                                  cursorColor: Colors.white,
-                                  validator: passwordValidator,
-                                  obscureText: _isObscure,
-                                  decoration: InputDecoration(
-                                    fillColor: Colors.white.withOpacity(0.2),
-                                    filled: true,
-                                    prefixIcon: Icon(Icons.lock_outlined,
-                                        color: Colors.white),
-                                    suffixIcon: IconButton(
-                                        color: _password.text.isEmpty
-                                            ? Colors.grey
-                                            : Colors.white,
-                                        icon: Icon(_isObscure
-                                            ? Icons.visibility_off
-                                            : Icons.visibility),
-                                        onPressed: () {
-                                          setState(() {
-                                            _isObscure = !_isObscure;
-                                          });
-                                        }),
-                                    hintText: "Enter Password",
-                                    hintStyle: TextStyle(
-                                        fontSize: 17,
-                                        color: Colors.white.withOpacity(0.5)),
-                                    errorStyle: TextStyle(color: Colors.yellow),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(25.0),
-                                      borderSide:
-                                          BorderSide(color: Colors.white),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.white.withOpacity(0.0)),
-                                        borderRadius:
-                                            BorderRadius.circular(25.0)),
-                                    errorBorder: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(25.0),
-                                        borderSide:
-                                            BorderSide(color: Colors.yellow)),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(25.0),
-                                        borderSide:
-                                            BorderSide(color: Colors.yellow)),
-                                  ),
-                                  onChanged: (String userpassword) {
-                                    setState(() {
-                                      password = userpassword;
-                                    });
-                                  },
-                                ),
-                                onFocusChange: (hasFocus) {
-                                  if (hasFocus) {
-                                    ispasswordtapped = true;
-                                  } else {
-                                    ispasswordtapped = false;
-                                  }
-                                },
-                              ),
-                            ),
+                                padding: EdgeInsets.only(
+                                    bottom: 10.0, left: 15.0, right: 15.0),
+                                child: Textfields(
+                                  validate: passwordValidator,
+                                  controller: controllerPassword,
+                                  hintText: "Password",
+                                  icon: Icons.lock_outlined,
+                                  secure: _isObscure,
+                                  suffixIcon: IconButton(
+                                      color: Colors.white,
+                                      icon: Icon(_isObscure
+                                          ? Icons.visibility_off
+                                          : Icons.visibility),
+                                      onPressed: () {
+                                        setState(() {
+                                          _isObscure = !_isObscure;
+                                        });
+                                      }),
+                                )),
 
                             //Confirm Passwrod Field
                             Padding(
-                              padding: EdgeInsets.only(
-                                  bottom: 10.0, left: 15.0, right: 15.0),
+                              padding: EdgeInsets.only(left: 15.0, right: 15.0),
                               child: Focus(
                                 child: TextFormField(
                                   style: TextStyle(
@@ -449,7 +316,8 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return "Please Enter password to Confirm";
-                                    } else if (value != password) {
+                                    } else if (value !=
+                                        controllerPassword.text) {
                                       return "Password does not match";
                                     }
                                   },
@@ -487,16 +355,6 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
                                             BorderSide(color: Colors.yellow)),
                                   ),
                                 ),
-                                onFocusChange: (hasFocus) {
-                                  if (hasFocus) {
-                                    setState(() {
-                                      isconfirmpassTapped = true;
-                                    });
-                                  }
-                                  if (hasFocus == false) {
-                                    isconfirmpassTapped = false;
-                                  }
-                                },
                               ),
                             ),
                           ],
@@ -538,23 +396,66 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
                     // Decorate here
                     ),
                 child: Center(
-                  child: Text(
-                    "Sign Up",
-                    style: TextStyle(
-                        letterSpacing: 2,
-                        // fontSize: 19,
-                        fontSize: SizeConfig.safeBlockVertical * 3.2,
-                        fontFamily: "Poppins",
-                        color: Color(0xffc8bce3)),
-                  ),
+                  child: Visibility(
+                      visible: visible,
+                      child: Text(
+                        "Sign Up",
+                        style: TextStyle(
+                            letterSpacing: 2,
+                            // fontSize: 19,
+                            fontSize: SizeConfig.safeBlockVertical * 3.2,
+                            fontFamily: "Poppins",
+                            color: Color(0xffc8bce3)),
+                      ),
+                      replacement: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 17,
+                            height: 17,
+                            child: CircularProgressIndicator(
+                              color: Palette.backgroundColor,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                          Text(
+                            " Sign Up",
+                            style: TextStyle(
+                                letterSpacing: 2,
+                                fontSize: 18,
+                                fontFamily: "Poppins",
+                                color: Color(0xffc8bce3)),
+                          ),
+                        ],
+                      )),
                 ),
               ),
-              onTap: () {
+              onTap: () async {
                 if (_formkey.currentState!.validate()) {
+                  setState(() {
+                    visible = !visible;
+                  });
                   isValidated = true;
-                  final snackBar = SnackBar(content: Text('Processing!!'));
+                  email = controllerEmail.text;
+                  password = controllerPassword.text;
+                  firstName = controllerFirstName.text;
+                  lastName = controllerLastName.text;
+                  void remove() {
+                    setState(() {
+                      visible = !visible;
+                    });
+                  }
 
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  var signupdetails = {
+                    'first_name': firstName,
+                    'last_name ': lastName,
+                    'email': email,
+                    'password': password
+                  };
+
+                  Auth auth =
+                      Auth(context: context, signupdetails: signupdetails);
+                  auth.signUpAPI().whenComplete(() => remove());
                 } else {
                   setState(() {
                     isValidated = false;
@@ -604,51 +505,3 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
     );
   }
 }
-
-// Padding a(String hinttext, MultiValidator validate){
-//   return Padding(
-//                           padding: EdgeInsets.only(
-//                               top: 10, bottom: 10, left: 15, right: 15),
-//                           child: TextFormField(
-//                             style: TextStyle(color: Colors.white, fontSize: 18),
-//                             cursorColor: Colors.white,
-//                             validator: validate,
-//                             autovalidateMode:
-//                                 AutovalidateMode.onUserInteraction,
-//                             decoration: InputDecoration(
-//                               fillColor: Colors.white.withOpacity(0.2),
-//                               filled: true,
-//                               prefixIcon: Icon(
-//                                 Icons.email_outlined,
-//                                 color: Colors.white,
-//                               ),
-//                               // labelText: "First Name",
-//                               hintText: hinttext,
-//                               hintStyle: TextStyle(
-//                                   fontSize: 17,
-//                                   color: Colors.white.withOpacity(0.5)),
-//                               errorStyle: TextStyle(color: Colors.yellow),
-
-//                               focusedBorder: OutlineInputBorder(
-//                                 borderRadius: BorderRadius.circular(25.0),
-//                                 borderSide: BorderSide(color: Colors.white),
-//                               ),
-
-//                               enabledBorder: OutlineInputBorder(
-//                                   borderSide: BorderSide(
-//                                       color: Colors.white.withOpacity(0.0)),
-//                                   borderRadius: BorderRadius.circular(25.0)),
-//                               errorBorder: OutlineInputBorder(
-//                                   borderRadius: BorderRadius.circular(25.0),
-//                                   borderSide: BorderSide(color: Colors.yellow)),
-//                               focusedErrorBorder: OutlineInputBorder(
-//                                   borderRadius: BorderRadius.circular(25.0),
-//                                   borderSide: BorderSide(color: Colors.yellow)),
-//                             ),
-//                             onChanged: (String useremail) {
-//                               setState(() {
-//                                 email = useremail;
-//                               });
-//                             },
-//                           )),
-// }

@@ -1,12 +1,22 @@
 // import 'package:flutter/gestures.dart';
+// import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+// import 'package:get/get.dart';
 // import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_home_app/config/palette.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:smart_home_app/screens/MainScreens/home_main.dart';
 import 'package:smart_home_app/screens/newSignUp.dart';
 import 'package:smart_home_app/screens/signup.dart';
 import 'package:smart_home_app/config/sizeconfig.dart';
+import 'package:smart_home_app/services/auth.dart';
+import 'package:smart_home_app/widgets/textfields.dart';
+import 'package:smart_home_app/widgets/error_dialog.dart';
+// import 'package:http/http.dart' as http;
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -16,11 +26,20 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  String url = "https://api.iot.puyinfotech.com/api/user/login";
+
   final _formkey = GlobalKey<FormState>();
+  // late final SharedPreferences preferences;
+
   String? email, password;
   bool _isObscure = true;
+  final FocusNode focusNode = FocusNode();
+  bool visible = true;
 
-  var _password = TextEditingController();
+  //Controllers
+
+  final TextEditingController controllerPassword = TextEditingController();
+  final TextEditingController controllerEmail = TextEditingController();
   bool isValidated = true;
 
   //Validators
@@ -30,10 +49,21 @@ class _LoginState extends State<Login> {
   ]);
   final passwordValidator = MultiValidator([
     RequiredValidator(errorText: 'Password is Required*'),
-    MinLengthValidator(8, errorText: 'password must be at least 8 digits long'),
+    MinLengthValidator(8, errorText: 'Password must be at least 8 digits long'),
     PatternValidator(r'(?=.*?[#?!@$%^&*-])',
-        errorText: 'passwords must have at least one special character')
+        errorText: 'Password must have at least one special character')
   ]);
+
+  var backgroundImage;
+  void initState() {
+    super.initState();
+    backgroundImage = Image.asset('images/what-is-home-automation.png');
+  }
+
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(backgroundImage.image, context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,100 +143,37 @@ class _LoginState extends State<Login> {
                                   Padding(
                                       padding: EdgeInsets.only(
                                           top: 25, left: 15, right: 15),
-                                      child: TextFormField(
-                                        cursorColor: Colors.black,
-                                        validator: emailValidator,
-                                        decoration: InputDecoration(
-                                          prefixIcon: Icon(
-                                            Icons.email_outlined,
-                                            color: Colors.grey,
-                                          ),
-                                          // labelText: "First Name",
-                                          hintText: "Enter Email",
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(25.0),
-                                            borderSide: BorderSide(
-                                                color: Palette.activeColor),
-                                          ),
-
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Colors.grey),
-                                              borderRadius:
-                                                  BorderRadius.circular(25.0)),
-                                          errorBorder: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(25.0),
-                                              borderSide: BorderSide(
-                                                  color: Colors.red)),
-                                          focusedErrorBorder:
-                                              OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          25.0),
-                                                  borderSide: BorderSide(
-                                                      color: Colors.red)),
-                                        ),
-                                        onChanged: (String useremail) {
-                                          setState(() {
-                                            email = useremail;
-                                          });
-                                        },
+                                      child: Textfields(
+                                        validate: emailValidator,
+                                        controller: controllerEmail,
+                                        hintText: "Your Email",
+                                        icon: Icons.email_outlined,
+                                        isSignupfield: false,
                                       )),
                                   //Password Field
                                   Padding(
-                                    padding: EdgeInsets.all(15),
-                                    child: TextFormField(
-                                      controller: _password,
-                                      cursorColor: Colors.black,
-                                      validator: passwordValidator,
-                                      obscureText: _isObscure,
-                                      decoration: InputDecoration(
-                                        prefixIcon: Icon(Icons.lock_outlined,
-                                            color: Colors.grey),
+                                      padding: EdgeInsets.all(15),
+                                      child: Textfields(
+                                        focusNode: focusNode,
+                                        validate: passwordValidator,
+                                        controller: controllerPassword,
+                                        hintText: "Enter Password",
+                                        icon: Icons.lock_outlined,
                                         suffixIcon: IconButton(
-                                            color: _password.text.isEmpty
-                                                ? Colors.grey
-                                                : Palette.activeColor,
+                                            color: Colors.grey,
                                             icon: Icon(_isObscure
                                                 ? Icons.visibility_off
                                                 : Icons.visibility),
                                             onPressed: () {
+                                              focusNode.unfocus();
+                                              focusNode.canRequestFocus = false;
                                               setState(() {
                                                 _isObscure = !_isObscure;
                                               });
                                             }),
-                                        hintText: "Enter Password",
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25.0),
-                                          borderSide: BorderSide(
-                                              color: Palette.activeColor),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                            borderSide:
-                                                BorderSide(color: Colors.grey),
-                                            borderRadius:
-                                                BorderRadius.circular(25.0)),
-                                        errorBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(25.0),
-                                            borderSide:
-                                                BorderSide(color: Colors.red)),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(25.0),
-                                            borderSide:
-                                                BorderSide(color: Colors.red)),
-                                      ),
-                                      onChanged: (String userpassword) {
-                                        setState(() {
-                                          password = userpassword;
-                                        });
-                                      },
-                                    ),
-                                  ),
+                                        secure: _isObscure,
+                                        isSignupfield: false,
+                                      )),
                                   GestureDetector(
                                     child: Container(
                                       margin:
@@ -227,24 +194,66 @@ class _LoginState extends State<Login> {
                                           // Decorate here
                                           ),
                                       child: Center(
-                                        child: Text(
-                                          "Login",
-                                          style: TextStyle(
-                                              letterSpacing: 2,
-                                              fontSize: 18,
-                                              fontFamily: "Poppins",
-                                              color: Color(0xffc8bce3)),
-                                        ),
+                                        child: Visibility(
+                                            visible: visible,
+                                            child: Text(
+                                              "Login",
+                                              style: TextStyle(
+                                                  letterSpacing: 2,
+                                                  fontSize: 18,
+                                                  fontFamily: "Poppins",
+                                                  color: Color(0xffc8bce3)),
+                                            ),
+                                            replacement: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                SizedBox(
+                                                  width: 17,
+                                                  height: 17,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    color:
+                                                        Palette.backgroundColor,
+                                                    strokeWidth: 2,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  " Login",
+                                                  style: TextStyle(
+                                                      letterSpacing: 2,
+                                                      fontSize: 18,
+                                                      fontFamily: "Poppins",
+                                                      color: Color(0xffc8bce3)),
+                                                ),
+                                              ],
+                                            )),
                                       ),
                                     ),
-                                    onTap: () {
+                                    onTap: () async {
                                       if (_formkey.currentState!.validate()) {
+                                        setState(() {
+                                          visible = !visible;
+                                        });
                                         isValidated = true;
-                                        final snackBar = SnackBar(
-                                            content: Text('Processing!!'));
+                                        email = controllerEmail.text;
+                                        password = controllerPassword.text;
+                                        void remove() {
+                                          setState(() {
+                                            visible = !visible;
+                                          });
+                                        }
 
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(snackBar);
+                                        Map<String, dynamic> logindetails = {
+                                          'email': email,
+                                          'password': password
+                                        };
+                                        Auth auth = Auth(
+                                            context: context,
+                                            logindetails: logindetails);
+                                        auth
+                                            .loginAPI()
+                                            .whenComplete(() => remove());
                                       } else {
                                         setState(() {
                                           isValidated = false;
@@ -254,57 +263,12 @@ class _LoginState extends State<Login> {
                                   ),
                                 ],
                               )
-                              //EMAIL Field
                             ],
                           ),
                         ),
                       ],
                     )),
               )),
-          // AnimatedPositioned(
-          //   duration: Duration(milliseconds: 350),
-          //   // curve: Curves.bounceInOut,
-          //   // top: isValidated ? 430 : 470,
-          //   top: isValidated
-          //       ? SizeConfig.blockSizeVertical * 52
-          //       : SizeConfig.blockSizeVertical * 67,
-          //   left: 130,
-          //   right: 130,
-          //   child: GestureDetector(
-          //     child: Container(
-          //       height: 40.0,
-          //       width: 120.0,
-          //       decoration: BoxDecoration(
-          //           borderRadius: BorderRadius.circular(20.0),
-          //           gradient: LinearGradient(
-          //               colors: <Color>[Color(0xff7f29a5), Color(0xff6742be)])
-          //           // Decorate here
-          //           ),
-          //       child: Center(
-          //         child: Text(
-          //           "Login",
-          //           style: TextStyle(
-          //               letterSpacing: 2,
-          //               fontSize: 18,
-          //               fontFamily: "Poppins",
-          //               color: Color(0xffc8bce3)),
-          //         ),
-          //       ),
-          //     ),
-          //     onTap: () {
-          //       if (_formkey.currentState!.validate()) {
-          //         isValidated = true;
-          //         final snackBar = SnackBar(content: Text('Processing!!'));
-
-          //         ScaffoldMessenger.of(context).showSnackBar(snackBar);
-          //       } else {
-          //         setState(() {
-          //           isValidated = false;
-          //         });
-          //       }
-          //     },
-          //   ),
-          // ),
           Positioned(
             // top: 560,
             top: SizeConfig.blockSizeVertical * 79,
@@ -332,12 +296,10 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        PageTransition(
-                            duration: Duration(milliseconds: 800),
-                            type: PageTransitionType.fade,
-                            child: NewSignUpScreen()));
+                    Navigator.of(context).push(PageTransition(
+                        duration: Duration(milliseconds: 800),
+                        type: PageTransitionType.fade,
+                        child: NewSignUpScreen()));
                   },
                 ))
               ]),
@@ -347,24 +309,4 @@ class _LoginState extends State<Login> {
       ),
     );
   }
-
-  // Route _createRoute() {
-  //   return PageRouteBuilder(
-  //       pageBuilder: (context, animation, secondaryAnimation) => SignupScreen(),
-  //       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-  //         var begin = Offset(0.0, 1.0);
-  //         var end = Offset.zero;
-  //         var curve = Curves.ease;
-
-  //         var tween =
-  //             Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-  //         return FadeTransition(
-  //           // position: animation.drive(tween),
-  //           opacity: animation,
-  //           child: child,
-  //         );
-  //       },
-  //       transitionDuration: Duration(milliseconds: 500));
-  // }
 }

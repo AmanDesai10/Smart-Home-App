@@ -37,6 +37,11 @@ dependencies:
   permission_handler: ^8.1.1
   connectivity_plus: ^1.0.3
   open_settings: ^2.0.1
+  network_info_plus: ^1.0.2
+  http: ^0.13.3
+  get: ^4.1.4
+  shared_preferences: ^2.0.6
+  curved_navigation_bar: ^1.0.1
 
 dev_dependencies:
   flutter_test:

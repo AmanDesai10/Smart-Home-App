@@ -29,7 +29,7 @@ class _HomeMainState extends State<HomeMain> {
       HomeScreen(
         name: widget.firstName,
       ),
-      AddDeviceScreenTrial(),
+      AddDeviceScreen(),
       ProfileScreen()
     ];
     return Scaffold(

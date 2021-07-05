@@ -162,7 +162,7 @@ class _AddDeviceScreenTrialState extends State<AddDeviceScreenTrial> {
                 onPressed: () async {
                   await checkConnectivity();
                   await checkpermission();
-                  _initNetworkInfo();
+                  await _initNetworkInfo();
 
                   if (_wifistatus) {
                     addAdevice(_textcontroller.text, selectedValue);

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_home_app/screens/MainScreens/AddDeviceScreen/Add%20Manually/add_device_name_to_API.dart';
 import 'package:smart_home_app/screens/MainScreens/home_main.dart';
 import 'package:smart_home_app/screens/login.dart';
 import 'package:smart_home_app/screens/newSignUp.dart';
@@ -67,6 +68,7 @@ class _MyAppState extends State<MyApp> {
         '/homepage': (context) => HomeMain(
               firstName: firstName,
             ),
+        '/addDeviceName': (context) => AddDeviceName(deviceUuid: null),
       },
     );
   }

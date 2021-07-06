@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class ConnectEspDevice extends StatefulWidget {
 }
 
 class _ConnectEspDeviceState extends State<ConnectEspDevice> {
+  bool visible = true;
   String? wifiName, wifiBSSID, wifiIP;
 
   bool allOk = false;
@@ -284,13 +286,38 @@ class _ConnectEspDeviceState extends State<ConnectEspDevice> {
                                     // Decorate here
                                     ),
                                 child: Center(
-                                  child: Text(
-                                    "Connect",
-                                    style: TextStyle(
-                                        letterSpacing: 2,
-                                        fontSize: 18,
-                                        fontFamily: "Poppins",
-                                        color: Color(0xffc8bce3)),
+                                  child: Visibility(
+                                    visible: visible,
+                                    child: Text(
+                                      "Connect",
+                                      style: TextStyle(
+                                          letterSpacing: 2,
+                                          fontSize: 18,
+                                          fontFamily: "Poppins",
+                                          color: Color(0xffc8bce3)),
+                                    ),
+                                    replacement: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 17,
+                                          height: 17,
+                                          child: CircularProgressIndicator(
+                                            color: Palette.backgroundColor,
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                        Text(
+                                          " Connect",
+                                          style: TextStyle(
+                                              letterSpacing: 2,
+                                              fontSize: 18,
+                                              fontFamily: "Poppins",
+                                              color: Color(0xffc8bce3)),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -301,16 +328,42 @@ class _ConnectEspDeviceState extends State<ConnectEspDevice> {
 
                                 try {
                                   if (allOk) {
+                                    setState(() {
+                                      visible = false;
+                                    });
                                     var connectdeviceres =
                                         await http.get(widget.customurl);
+                                    var connect =
+                                        jsonDecode(connectdeviceres.body);
+                                    print(connect['Success']);
+                                    if (connect['Success']
+                                            .toString()
+                                            .substring(0, 5) ==
+                                        'saved') {
+                                      Future.delayed(Duration(seconds: 1), () {
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder:
+                                                    (BuildContext context) =>
+                                                        AddDeviceName(
+                                                            deviceUuid: widget
+                                                                .deviceUuid)));
 
-                                    Future.delayed(Duration(seconds: 1), () {
-                                      Navigator.of(context)
-                                          .popAndPushNamed('/addDeviceName');
-                                    });
+                                        // Navigator.of(context).push(
+                                        //     MaterialPageRoute(
+                                        //         builder:
+                                        //             (BuildContext context) =>
+                                        //                 Trial(
+                                        //                   deviceUuid:
+                                        //                       widget.deviceUuid,
+                                        //                 )));
+                                      });
+                                    }
                                   }
                                 } catch (e) {
                                   setState(() {
+                                    visible = true;
                                     _connectionStatus =
                                         "Error connecting to device\n Go Back and retry";
                                   });

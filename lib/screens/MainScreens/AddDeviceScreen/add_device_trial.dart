@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:smart_home_app/devicelist.dart';
+import 'package:smart_home_app/screens/MainScreens/HomeScreen/devicelist.dart';
 import 'package:smart_home_app/models/add_device_model.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';

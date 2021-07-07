@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_switch/flutter_switch.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_home_app/config/palette.dart';
-import 'package:smart_home_app/devicelist.dart';
-import 'package:smart_home_app/models/add_device_model.dart';
-import 'package:http/http.dart' as http;
+import 'package:smart_home_app/screens/MainScreens/HomeScreen/devicelist.dart';
+import 'device_tile.dart';
+import 'no_device_found.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? name;
@@ -17,7 +17,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? firstName;
+  String? firstName, accessToken;
+  DeviceData getlist = DeviceData();
+
   Future getUserName() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     firstName = preferences.getString('first_name')!;
@@ -26,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     getUserName();
+    getlist.getDeviceList();
   }
 
   // bool status = false;
@@ -34,8 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     String? fName = firstName ?? widget.name;
     // getUserName();
-    final devicelist = DeviceData.device_list;
-    final listcount = DeviceData.device_list.length;
+    // final devicelist = DeviceData.device_list;
+    // final listcount = DeviceData.device_list.length;
 
     return Container(
       padding: EdgeInsets.only(top: 50, left: 35, right: 35, bottom: 20),
@@ -85,120 +88,52 @@ class _HomeScreenState extends State<HomeScreen> {
                   ).createShader(rect);
                 },
                 blendMode: BlendMode.dstOut,
-                child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: BouncingScrollPhysics(),
-                    itemCount: listcount,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                            mainAxisSpacing: 20,
-                            crossAxisSpacing: 17,
-                            crossAxisCount: 2,
-                            childAspectRatio: 1.5,
-                            mainAxisExtent: 130.0),
-                    itemBuilder: (context, index) =>
-                        buildAddDevice(devicelist[index], index)),
+                child: FutureBuilder(
+                  future: getlist.getDeviceList(),
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    if (snapshot.hasData) {
+                      if (snapshot.data.length > 0) {
+                        return GridView.builder(
+                            shrinkWrap: true,
+                            physics: BouncingScrollPhysics(),
+                            // itemCount: listcount,
+                            itemCount: snapshot.data.length,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                    mainAxisSpacing: 20,
+                                    crossAxisSpacing: 17,
+                                    crossAxisCount: 2,
+                                    childAspectRatio: 1.5,
+                                    mainAxisExtent: 130.0),
+                            itemBuilder: (context, index) =>
+                                buildAddDevice(snapshot.data[index], index));
+                      } else {
+                        return NoDeviceScreen();
+                      }
+                    } else {
+                      return Center(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          width: 100,
+                          height: 100,
+                          child: Container(
+                            padding: EdgeInsets.all(35),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Palette.backgroundColor,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class SwitchToggle extends StatefulWidget {
-  const SwitchToggle({Key? key}) : super(key: key);
-
-  @override
-  _SwitchToggleState createState() => _SwitchToggleState();
-}
-
-class _SwitchToggleState extends State<SwitchToggle> {
-  bool status = false;
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      flex: 3,
-      child: Padding(
-        padding: const EdgeInsets.only(right: 9.0),
-        child: FlutterSwitch(
-            height: 28,
-            width: 50,
-            toggleSize: 22,
-            valueFontSize: 13,
-            showOnOff: true,
-            activeTextColor: Colors.black,
-            inactiveTextColor: Colors.blue.shade50,
-            activeTextFontWeight: FontWeight.w300,
-            inactiveTextFontWeight: FontWeight.w300,
-            activeColor: Colors.lightGreenAccent.shade700,
-            value: status,
-            onToggle: (value) async {
-              setState(() {
-                status = value;
-              });
-            }),
-      ),
-    );
-  }
-}
-
-Widget buildAddDevice(device, int index) => Devices(device: device);
-
-class Devices extends StatefulWidget {
-  final AddDevice? device;
-
-  const Devices({Key? key, @required this.device}) : super(key: key);
-
-  @override
-  _DevicesState createState() => _DevicesState();
-}
-
-class _DevicesState extends State<Devices> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      // margin: EdgeInsets.fromLTRB(25, 15, 25, 15),
-      // margin: EdgeInsets.fromLTRB(15, 10, 15, 5),
-
-      decoration: BoxDecoration(
-        color: Palette.backgroundColor,
-        borderRadius: BorderRadius.circular(15),
-        // border: Border.all(width: 2, color: Colors.grey.shade400),
-      ),
-      // height: 10,
-      // width: 50,
-      child: Column(
-        children: [
-          Expanded(
-            child: Row(
-              // crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 5),
-                    child: widget.device!.icon,
-                  ),
-                ),
-                Expanded(
-                  child: SizedBox(),
-                  flex: 1,
-                ),
-                SwitchToggle(),
-              ],
-            ),
-          ),
-          Expanded(
-              child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Text(
-              widget.device!.text!,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15),
-            ),
-          ))
         ],
       ),
     );

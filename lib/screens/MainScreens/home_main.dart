@@ -74,9 +74,11 @@ class _HomeMainState extends State<HomeMain> {
           )
         ],
         onTap: (int index) {
-          setState(() {
-            selectedpage = index;
-          });
+          if (selectedpage != index) {
+            setState(() {
+              selectedpage = index;
+            });
+          }
         },
       ),
       body: pages[selectedpage],

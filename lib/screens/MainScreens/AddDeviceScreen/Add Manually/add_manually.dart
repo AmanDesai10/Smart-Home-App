@@ -49,7 +49,8 @@ class AddManually extends StatelessWidget {
                       deviceTypeName: 'Lights'),
                   DeviceType(deviceType: 'images/AC.svg', deviceTypeName: 'AC'),
                   DeviceType(
-                      deviceType: 'images/Fan_v2.svg', deviceTypeName: 'Fans'),
+                      deviceType: 'images/Fan_v2_1.svg',
+                      deviceTypeName: 'Fans'),
                   DeviceType(
                       deviceType: 'images/Bell.svg',
                       deviceTypeName: 'Door Bell'),

@@ -14,6 +14,7 @@ import 'package:smart_home_app/screens/newSignUp.dart';
 import 'package:smart_home_app/screens/signup.dart';
 import 'package:smart_home_app/config/sizeconfig.dart';
 import 'package:smart_home_app/services/auth.dart';
+import 'package:smart_home_app/widgets/snack_bar.dart';
 import 'package:smart_home_app/widgets/textfields.dart';
 import 'package:smart_home_app/widgets/error_dialog.dart';
 // import 'package:http/http.dart' as http;
@@ -62,6 +63,7 @@ class _LoginState extends State<Login> {
 
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     precacheImage(backgroundImage.image, context);
   }
 

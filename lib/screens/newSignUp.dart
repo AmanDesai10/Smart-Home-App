@@ -21,6 +21,7 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
   late Animation<double> _zoominout;
 
   final _formkey = GlobalKey<FormState>();
+  final FocusNode focusNode = FocusNode();
   String? email, password, firstName, lastName;
   bool _isObscure = true, visible = true;
 
@@ -287,6 +288,7 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
                                 padding: EdgeInsets.only(
                                     bottom: 10.0, left: 15.0, right: 15.0),
                                 child: Textfields(
+                                  focusNode: focusNode,
                                   validate: passwordValidator,
                                   controller: controllerPassword,
                                   hintText: "Password",
@@ -298,6 +300,8 @@ class _NewSignUpScreenState extends State<NewSignUpScreen>
                                           ? Icons.visibility_off
                                           : Icons.visibility),
                                       onPressed: () {
+                                        focusNode.unfocus();
+                                        focusNode.canRequestFocus = false;
                                         setState(() {
                                           _isObscure = !_isObscure;
                                         });

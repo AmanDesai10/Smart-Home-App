@@ -40,10 +40,11 @@ class _MyAppState extends State<MyApp> {
 
   Future getPreviousUser() async {
     String userinfo = 'https://api.iot.puyinfotech.com/api/user';
+
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     var useremail = preferences.getString('email');
     var firstName = preferences.getString('first_name');
-    var accessToken = preferences.getString('access-token');
+    var accessToken = preferences.getString('access-token') ?? 'abc';
     print(accessToken);
     setState(() {
       this.useremail = useremail;
@@ -53,9 +54,9 @@ class _MyAppState extends State<MyApp> {
 
     var jwtres = await http.get(
       Uri.parse(userinfo),
-      headers: {'x-access-token': accessToken!},
+      headers: {'x-access-token': accessToken},
     );
-    if (jwtres.statusCode == 401) {
+    if (jwtres.statusCode != 401) {
       setState(() {
         jwt = true;
       });

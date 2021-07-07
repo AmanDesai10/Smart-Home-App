@@ -10,6 +10,7 @@ import 'package:smart_home_app/config/palette.dart';
 import 'package:smart_home_app/screens/MainScreens/home_main.dart';
 import 'package:smart_home_app/screens/login.dart';
 import 'package:smart_home_app/widgets/error_dialog.dart';
+import 'package:smart_home_app/widgets/snack_bar.dart';
 
 class Auth {
   final Map<String, dynamic>? logindetails;
@@ -36,6 +37,7 @@ class Auth {
       preferences.setString('access-token', data['accessToken']);
 
       String? accessToken = preferences.getString('access-token');
+      print(accessToken);
 
       String geturl = "https://api.iot.puyinfotech.com/api/user";
       dynamic userdata = await http.get(
@@ -50,19 +52,7 @@ class Auth {
 
       // final SharedPreferences preferences = await SharedPreferences.getInstance();
       // preferences.setString('accesstoken', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNhZDQ2OTgyLWFhYjQtNDExZi1hYzAzLWI5YmE3MDNkOWM0ZSIsImlhdCI6MTYyNDk4OTQyMiwiZXhwIjoxNjI1MDc1ODIyfQ.oZ8Ou5hMWhpSB14PZTVrBy0l51WLnd1YzsnAQQDPZoo');
-
-      final snackBar = SnackBar(
-        behavior: SnackBarBehavior.floating,
-        content: Text(
-          'Logged In!!',
-          style: TextStyle(color: Palette.homeBGColor),
-        ),
-        // padding: EdgeInsets.all(10),
-        margin: EdgeInsets.all(15),
-        backgroundColor: Colors.white,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      ScaffoldMessenger.of(context).showSnackBar(snackBar('Logged In!!'));
 
       // Get.offAllNamed('/homepage');
       Get.offAll(HomeMain(

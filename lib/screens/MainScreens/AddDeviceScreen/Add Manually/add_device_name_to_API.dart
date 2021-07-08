@@ -29,7 +29,7 @@ class _AddDeviceNameState extends State<AddDeviceName> {
 
   final TextEditingController deviceNameController = TextEditingController();
   final _deviceNamekey = GlobalKey<FormState>();
-  bool isFocus = false;
+  bool isFocus = false, visible = true;
 
   final deviceNameValidator = MultiValidator([
     RequiredValidator(errorText: "This field is Required*"),
@@ -171,18 +171,45 @@ class _AddDeviceNameState extends State<AddDeviceName> {
                                   // Decorate here
                                   ),
                               child: Center(
-                                child: Text(
-                                  "Add Device",
-                                  style: TextStyle(
-                                      letterSpacing: 2,
-                                      fontSize: 18,
-                                      fontFamily: "Poppins",
-                                      color: Color(0xffc8bce3)),
+                                child: Visibility(
+                                  visible: visible,
+                                  child: Text(
+                                    "Add Device",
+                                    style: TextStyle(
+                                        letterSpacing: 2,
+                                        fontSize: 18,
+                                        fontFamily: "Poppins",
+                                        color: Color(0xffc8bce3)),
+                                  ),
+                                  replacement: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 17,
+                                        height: 17,
+                                        child: CircularProgressIndicator(
+                                          color: Palette.backgroundColor,
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                      Text(
+                                        " Add Device",
+                                        style: TextStyle(
+                                            letterSpacing: 2,
+                                            fontSize: 18,
+                                            fontFamily: "Poppins",
+                                            color: Color(0xffc8bce3)),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                             onTap: () async {
                               if (_deviceNamekey.currentState!.validate()) {
+                                setState(() {
+                                  visible = !visible;
+                                });
                                 callAPI();
                               }
                             },

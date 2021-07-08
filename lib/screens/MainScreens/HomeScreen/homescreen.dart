@@ -5,8 +5,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_home_app/config/palette.dart';
 import 'package:smart_home_app/screens/MainScreens/HomeScreen/devicelist.dart';
+import 'package:smart_home_app/screens/MainScreens/home_main.dart';
 import 'device_tile.dart';
 import 'no_device_found.dart';
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   final String? name;
@@ -19,23 +21,29 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String? firstName, accessToken;
   DeviceData getlist = DeviceData();
+  // var list;
 
   Future getUserName() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     firstName = preferences.getString('first_name')!;
   }
 
+  Future devicelist() async {
+    setState(() {});
+    return getlist.getDeviceList();
+  }
+
   void initState() {
     super.initState();
     getUserName();
-    getlist.getDeviceList();
+    // getlist.getDeviceList();
   }
 
   // bool status = false;
 
   @override
   Widget build(BuildContext context) {
-    String? fName = firstName ?? widget.name;
+    String fName = firstName ?? widget.name ?? 'Guest';
     // getUserName();
     // final devicelist = DeviceData.device_list;
     // final listcount = DeviceData.device_list.length;
@@ -89,46 +97,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 blendMode: BlendMode.dstOut,
                 child: FutureBuilder(
-                  future: getlist.getDeviceList(),
+                  // future: getlist.getDeviceList(),
+                  future: devicelist(),
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    if (snapshot.hasData) {
-                      if (snapshot.data.length > 0) {
-                        return GridView.builder(
-                            shrinkWrap: true,
-                            physics: BouncingScrollPhysics(),
-                            // itemCount: listcount,
-                            itemCount: snapshot.data.length,
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                    mainAxisSpacing: 20,
-                                    crossAxisSpacing: 17,
-                                    crossAxisCount: 2,
-                                    childAspectRatio: 1.5,
-                                    mainAxisExtent: 130.0),
-                            itemBuilder: (context, index) =>
-                                buildAddDevice(snapshot.data[index], index));
-                      } else {
-                        return NoDeviceScreen();
-                      }
-                    } else {
-                      return Center(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          width: 100,
-                          height: 100,
-                          child: Container(
-                            padding: EdgeInsets.all(35),
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              color: Palette.backgroundColor,
-                            ),
-                          ),
-                        ),
-                      );
-                    }
+                    return RefreshIndicator(
+                        color: Palette.homeBGColor,
+                        child: _gridView(snapshot),
+                        onRefresh: () {
+                          return devicelist();
+                        });
                   },
                 ),
               ),
@@ -137,5 +114,47 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  Widget _gridView(AsyncSnapshot snapshot) {
+    if (snapshot.hasData) {
+      if (snapshot.data.length > 0) {
+        return GridView.builder(
+            primary: false,
+            shrinkWrap: true,
+            physics:
+                AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            // itemCount: listcount,
+            itemCount: snapshot.data.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                mainAxisSpacing: 20,
+                crossAxisSpacing: 17,
+                crossAxisCount: 2,
+                childAspectRatio: 1.5,
+                mainAxisExtent: 130.0),
+            itemBuilder: (context, index) =>
+                buildAddDevice(snapshot.data[index], index));
+      } else {
+        return NoDeviceScreen();
+      }
+    } else {
+      return Center(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          width: 100,
+          height: 100,
+          child: Container(
+            padding: EdgeInsets.all(35),
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: Palette.backgroundColor,
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

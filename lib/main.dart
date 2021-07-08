@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
 
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     var useremail = preferences.getString('email');
-    var firstName = preferences.getString('first_name');
+    firstName = preferences.getString('first_name');
     var accessToken = preferences.getString('access-token') ?? 'abc';
     print(accessToken);
     setState(() {
@@ -56,11 +56,12 @@ class _MyAppState extends State<MyApp> {
       Uri.parse(userinfo),
       headers: {'x-access-token': accessToken},
     );
-    if (jwtres.statusCode != 401) {
+    if (jwtres.statusCode != 200) {
       setState(() {
         jwt = true;
       });
     }
+    print(jwt);
   }
 
   @override

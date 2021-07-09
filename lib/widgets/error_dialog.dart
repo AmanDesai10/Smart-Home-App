@@ -1,8 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'package:open_settings/open_settings.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_home_app/screens/MainScreens/HomeScreen/devicelist.dart';
 import 'package:smart_home_app/screens/newSignUp.dart';
+import 'package:smart_home_app/widgets/textfields.dart';
 
 Future<dynamic> buildShowDialog(
     {bool notAUser = false,

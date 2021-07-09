@@ -1,66 +1,36 @@
-import 'dart:async';
-
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:network_info_plus/network_info_plus.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_home_app/config/palette.dart';
 import 'package:smart_home_app/config/sizeconfig.dart';
-import 'package:smart_home_app/screens/MainScreens/AddDeviceScreen/Add%20Manually/connectESPdevice.dart';
-import 'package:smart_home_app/widgets/error_dialog.dart';
+import 'package:smart_home_app/screens/MainScreens/HomeScreen/devicelist.dart';
+import 'package:smart_home_app/screens/MainScreens/home_main.dart';
 import 'package:smart_home_app/widgets/textfields.dart';
 import 'package:http/http.dart' as http;
 
-class AddDeviceName extends StatefulWidget {
-  final String? deviceUuid;
+class EditDeviceScreenFinal extends StatefulWidget {
+  final String img, deviceName, deviceID;
 
-  const AddDeviceName({Key? key, required this.deviceUuid}) : super(key: key);
+  const EditDeviceScreenFinal(
+      {Key? key,
+      required this.img,
+      required this.deviceName,
+      required this.deviceID})
+      : super(key: key);
 
   @override
-  _AddDeviceNameState createState() => _AddDeviceNameState();
+  _EditDeviceScreenFinalState createState() => _EditDeviceScreenFinalState();
 }
 
-class _AddDeviceNameState extends State<AddDeviceName> {
+class _EditDeviceScreenFinalState extends State<EditDeviceScreenFinal> {
+  bool visible = true;
+  final _editDeviceNamekey = GlobalKey<FormState>();
   FocusNode _deviceNamefocusNode = FocusNode();
-
-  final TextEditingController deviceNameController = TextEditingController();
-  final _deviceNamekey = GlobalKey<FormState>();
-  bool isFocus = false, visible = true;
+  TextEditingController deviceNameController = TextEditingController();
 
   final deviceNameValidator = MultiValidator([
     RequiredValidator(errorText: "This field is Required*"),
   ]);
-
-  // late StreamSubscription subscription;
-
-  @override
-  void dispose() {
-    // subscription.cancel();
-
-    super.dispose();
-  }
-
-  void initState() {
-    super.initState();
-    _deviceNamefocusNode.addListener(onFocus);
-  }
-
-  void onFocus() {
-    if (!isFocus) {
-      setState(() {
-        isFocus = !isFocus;
-      });
-    } else {
-      Future.delayed(Duration(milliseconds: 100), () {
-        setState(() {
-          isFocus = !isFocus;
-        });
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +47,7 @@ class _AddDeviceNameState extends State<AddDeviceName> {
                 padding: const EdgeInsets.only(top: 20, left: 20),
                 child: TextButton(
                   onPressed: () {
-                    Navigator.popUntil(
-                        context, ModalRoute.withName('/homepage'));
+                    Navigator.pop(context);
                   },
                   child: Text(
                     "Cancel",
@@ -89,7 +58,7 @@ class _AddDeviceNameState extends State<AddDeviceName> {
                 ),
               ),
               Container(
-                height: !isFocus ? 580 : 320,
+                height: 320,
                 width: double.infinity,
                 margin:
                     EdgeInsets.only(top: 10, left: 20, right: 20, bottom: 20),
@@ -105,7 +74,7 @@ class _AddDeviceNameState extends State<AddDeviceName> {
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 15.0),
                             child: Text(
-                              "Just one last step",
+                              "Edit Device Name",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 23,
@@ -116,25 +85,10 @@ class _AddDeviceNameState extends State<AddDeviceName> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(15, 5, 15, 10),
-                            child: Text(
-                              'You are almost ready to use your smart device.\nJust Add your preferred device name.',
-                              style: TextStyle(color: Colors.grey),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 15, 10, 10),
-                            child:
-                                CompletedstatusInfo(text: 'Wi-Fi Network Info'),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-                            child:
-                                CompletedstatusInfo(text: 'Device Connected'),
-                          ),
+                              padding: const EdgeInsets.fromLTRB(15, 5, 15, 10),
+                              child: deviceIcon(widget.img)),
                           Form(
-                            key: _deviceNamekey,
+                            key: _editDeviceNamekey,
                             child: Column(
                               children: [
                                 Padding(
@@ -173,7 +127,7 @@ class _AddDeviceNameState extends State<AddDeviceName> {
                                 child: Visibility(
                                   visible: visible,
                                   child: Text(
-                                    "Add Device",
+                                    "Edit",
                                     style: TextStyle(
                                         letterSpacing: 2,
                                         fontSize: 18,
@@ -192,7 +146,7 @@ class _AddDeviceNameState extends State<AddDeviceName> {
                                         ),
                                       ),
                                       Text(
-                                        " Add Device",
+                                        " Edit",
                                         style: TextStyle(
                                             letterSpacing: 2,
                                             fontSize: 18,
@@ -205,25 +159,36 @@ class _AddDeviceNameState extends State<AddDeviceName> {
                               ),
                             ),
                             onTap: () async {
-                              if (_deviceNamekey.currentState!.validate()) {
+                              if (_editDeviceNamekey.currentState!.validate()) {
                                 setState(() {
                                   visible = !visible;
                                 });
-                                callAPI();
+
+                                late SharedPreferences preferences;
+                                String? accessToken;
+                                preferences =
+                                    await SharedPreferences.getInstance();
+                                accessToken =
+                                    preferences.getString('access-token');
+                                String editdevicenameurl =
+                                    'https://api.iot.puyinfotech.com/api/devices/name';
+                                var editres = await http.post(
+                                    Uri.parse(editdevicenameurl),
+                                    headers: {
+                                      'x-access-token': accessToken!,
+                                      'Content-Type':
+                                          'application/x-www-form-urlencoded'
+                                    },
+                                    body: {
+                                      'id': '${widget.deviceID}',
+                                      'name': '${deviceNameController.text}'
+                                    });
+                                if (editres.statusCode == 200) {
+                                  Navigator.of(context)
+                                      .pushReplacementNamed('/homepage');
+                                }
                               }
                             },
-                          ),
-                          // Spacer(),
-                          SizedBox(
-                            height: isFocus ? 0 : 100,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 25),
-                            child: Text(
-                              "Tip: Give your device a name such that you can easily recognize your device.",
-                              style: TextStyle(color: Colors.grey),
-                              textAlign: TextAlign.center,
-                            ),
                           ),
                         ],
                       ),
@@ -233,64 +198,6 @@ class _AddDeviceNameState extends State<AddDeviceName> {
           ),
         ),
       ),
-    );
-  }
-
-  void callAPI() async {
-    late SharedPreferences preferences;
-    String? accessToken;
-    preferences = await SharedPreferences.getInstance();
-    accessToken = preferences.getString('access-token');
-    print(accessToken);
-    String addDeviceUrl = "https://api.iot.puyinfotech.com/api/devices";
-    var addDeviceResponse = await http.post(Uri.parse(addDeviceUrl), headers: {
-      'x-access-token': '$accessToken',
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }, body: {
-      'id': '${widget.deviceUuid}',
-      'name': '${deviceNameController.text}'
-    });
-
-    print(addDeviceResponse.body);
-    if (addDeviceResponse.body == 'OK') {
-      Navigator.of(context).pushReplacementNamed('/homepage');
-    }
-
-    var devicelist = await http.get(Uri.parse(addDeviceUrl),
-        headers: {'x-access-token': '$accessToken'});
-
-    print(devicelist.body);
-  }
-}
-
-class CompletedstatusInfo extends StatelessWidget {
-  final String text;
-  const CompletedstatusInfo({
-    Key? key,
-    required this.text,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            text,
-            style: TextStyle(
-                color: Colors.black54, fontFamily: 'Poppins', fontSize: 20),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        Expanded(
-          child: Icon(
-            Icons.check_circle_outline_rounded,
-            color: Colors.green,
-            size: 31,
-          ),
-        )
-      ],
     );
   }
 }
